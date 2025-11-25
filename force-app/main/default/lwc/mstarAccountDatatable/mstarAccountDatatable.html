@@ -1,0 +1,56 @@
+<template>
+    <div class="slds-m-around_medium">
+        <div class="slds-box slds-theme_default">
+            <h2 class="slds-text-heading_medium slds-m-bottom_medium">Account Records</h2>
+            
+            <!-- Search Input Section -->
+            <div class="slds-m-bottom_large">
+                <div class="slds-form-element">
+                    <label class="slds-form-element__label" for="searchInput">
+                        <abbr class="slds-required" title="required">*</abbr>Search Account by Name
+                    </label>
+                    <div class="slds-form-element__control">
+                        <input
+                            type="text"
+                            id="searchInput"
+                            class="slds-input"
+                            placeholder="Enter account name"
+                            value={searchTerm}
+                            onchange={handleSearchChange}
+                            onkeyup={handleSearchKeyup}
+                        />
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Data Table Section -->
+            <div class="slds-m-top_medium">
+                <template if:true={isLoading}>
+                    <div class="slds-align_absolute-center slds-m-vertical_large">
+                        <lightning-spinner
+                            alternative-text="Loading"
+                            size="medium">
+                        </lightning-spinner>
+                    </div>
+                </template>
+                
+                <template if:false={isLoading}>
+                    <template if:true={accounts.length}>
+                        <lightning-datatable
+                            key-field="Id"
+                            data={accounts}
+                            columns={columns}
+                            hide-checkbox-column="true">
+                        </lightning-datatable>
+                    </template>
+                    
+                    <template if:false={accounts.length}>
+                        <div class="slds-align_absolute-center slds-m-vertical_large">
+                            <p class="slds-text-body_regular">No accounts found</p>
+                        </div>
+                    </template>
+                </template>
+            </div>
+        </div>
+    </div>
+</template>
