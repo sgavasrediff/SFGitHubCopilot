@@ -83,21 +83,8 @@ export default class MstarAccountDatatable extends LightningElement {
      */
     handleSearchChange(event) {
         this.searchTerm = event.target.value;
-    }
-
-    /**
-     * @description Handles keyup event to trigger search with debouncing
-     * Searches accounts based on entered search term
-     * @param event Keyup event from input field
-     */
-    handleSearchKeyup(event) {
-        // Clear previous timeout to implement debouncing
-        clearTimeout(this.searchTimeout);
-        
-        // Set new timeout for delayed search execution
-        this.searchTimeout = setTimeout(() => {
-            this.loadAccounts(this.searchTerm);
-        }, 300); // 300ms debounce delay
+        // Load accounts when search term changes
+        this.loadAccounts(this.searchTerm);
     }
 
     /**
