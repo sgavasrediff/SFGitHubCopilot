@@ -23,20 +23,28 @@ public with sharing class MSTAR_AccountHelper {
             String query = 'SELECT Id, Name, RecordTypeId, CreatedDate FROM Account';
             
             // Add search filter if search term is provided
+            List<Account> accounts;
             if (String.isNotBlank(searchTerm)) {
-                query += ' WHERE Name LIKE \'%' + String.escapeSingleQuotes(searchTerm) + '%\'';
+                accounts = [SELECT Id, Name, RecordTypeId, CreatedDate 
+                            FROM Account 
+                            WHERE Name LIKE :('%' + searchTerm + '%')
+                            ORDER BY CreatedDate DESC
+                            LIMIT :limitCount];
+            } else {
+                accounts = [SELECT Id, Name, RecordTypeId, CreatedDate 
+                            FROM Account 
+                            ORDER BY CreatedDate DESC
+                            LIMIT :limitCount];
             }
             
-            // Add ordering and limit
-            query += ' ORDER BY CreatedDate DESC LIMIT ' + limitCount;
-            
             // Execute query and return results
-            return Database.query(query);
+            return accounts;
             
         } catch (Exception ex) {
-            // Log exception for debugging
+            // Log exception for internal debugging
             System.debug('Error in MSTAR_AccountHelper.getAccounts: ' + ex.getMessage());
-            throw new AuraHandledException('Error fetching accounts: ' + ex.getMessage());
+            // Throw a generic error message to the user
+            throw new AuraHandledException('An unexpected error occurred while fetching accounts. Please contact your administrator.');
         }
     }
 }
