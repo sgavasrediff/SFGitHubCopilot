@@ -1,6 +1,15 @@
 <template>
     <div class="slds-m-around_medium">
-        <div class="slds-box slds-theme_default">
+        <!-- Error message display -->
+        <template if:true={errorMessage}>
+            <div class="slds-notify slds-notify_alert slds-alert_error" role="alert">
+                <span class="slds-assistive-text">error</span>
+                <h2>{errorMessage}</h2>
+            </div>
+        </template>
+
+        <!-- Account Datatable Section -->
+        <div class="slds-box slds-m-bottom_medium">
             <h2 class="slds-text-heading_medium slds-m-bottom_medium">Account Records</h2>
             
             <!-- Search Input Section -->
@@ -39,7 +48,7 @@
                             key-field="Id"
                             data={accounts}
                             columns={columns}
-                            hide-checkbox-column="true">
+                            onrowselection={handleAccountRowSelection}>
                         </lightning-datatable>
                     </template>
                     
@@ -51,5 +60,49 @@
                 </template>
             </div>
         </div>
+
+        <!-- Related Contacts Section -->
+        <template if:true={isContactsVisible}>
+            <div class="slds-box">
+                <h2 class="slds-text-heading_medium slds-m-bottom_small">
+                    Contacts for Account: <span class="slds-text-color_success">{selectedAccountName}</span>
+                </h2>
+
+                <!-- Loading spinner -->
+                <template if:true={isLoadingContacts}>
+                    <lightning-spinner alternative-text="Loading" size="small"></lightning-spinner>
+                </template>
+
+                <!-- Contacts Datatable -->
+                <template if:false={isLoadingContacts}>
+                    <lightning-datatable
+                        key-field="Id"
+                        data={contactData}
+                        columns={contactColumns}>
+                    </lightning-datatable>
+
+                    <!-- Pagination Controls -->
+                    <div class="slds-m-top_medium slds-align_absolute-center">
+                        <div class="slds-m-bottom_small">
+                            <p class="slds-text-body_small">{paginationInfo}</p>
+                        </div>
+                        <div class="slds-button-group" role="group">
+                            <button
+                                class="slds-button slds-button_neutral"
+                                onclick={handlePreviousPage}
+                                disabled={isPreviousDisabled}>
+                                Previous
+                            </button>
+                            <button
+                                class="slds-button slds-button_neutral"
+                                onclick={handleNextPage}
+                                disabled={isNextDisabled}>
+                                Next
+                            </button>
+                        </div>
+                    </div>
+                </template>
+            </div>
+        </template>
     </div>
 </template>

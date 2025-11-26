@@ -1,5 +1,6 @@
 import { LightningElement, track } from 'lwc';
 import getAccounts from '@salesforce/apex/MSTAR_AccountHelper.getAccounts';
+import getRelatedContacts from '@salesforce/apex/MSTAR_AccountContactHelper.getRelatedContacts';
 
 /**
  * @description LWC Component to display Account records in a datatable
@@ -11,6 +12,7 @@ export default class MstarAccountDatatable extends LightningElement {
     @track accounts = [];
     @track searchTerm = '';
     @track isLoading = false;
+    @track isLoadingContacts = false;
     @track columns = [
         {
             label: 'Account Name',
@@ -42,6 +44,23 @@ export default class MstarAccountDatatable extends LightningElement {
             sortable: true
         }
     ];
+    
+    // Contact related properties
+    @track contactData = [];
+    @track contactColumns = [
+        { label: 'First Name', fieldName: 'FirstName', type: 'text' },
+        { label: 'Last Name', fieldName: 'LastName', type: 'text' },
+        { label: 'Email', fieldName: 'Email', type: 'email' }
+    ];
+    
+    @track selectedAccountId = null;
+    @track selectedAccountName = '';
+    @track isContactsVisible = false;
+    @track currentPage = 1;
+    @track pageSize = 10;
+    @track totalPages = 0;
+    @track totalRecords = 0;
+    @track errorMessage = '';
 
     /**
      * @description Lifecycle hook - Called when component is inserted into DOM
@@ -94,5 +113,89 @@ export default class MstarAccountDatatable extends LightningElement {
     showErrorToast(message) {
         // Toast notification can be added here using lightning-notification
         console.error(message);
+    }
+
+    /**
+     * @description Handle account row selection
+     * @param event - Row selection event from datatable
+     */
+    handleAccountRowSelection(event) {
+        const selectedRows = event.detail.selectedRows;
+        
+        if (selectedRows.length > 0) {
+            this.selectedAccountId = selectedRows[0].Id;
+            this.selectedAccountName = selectedRows[0].Name;
+            this.currentPage = 1;
+            this.errorMessage = '';
+            this.loadContactsForAccount();
+        }
+    }
+
+    /**
+     * @description Load related contacts for selected account
+     */
+    loadContactsForAccount() {
+        this.isLoadingContacts = true;
+        
+        getRelatedContacts({
+            accountId: this.selectedAccountId,
+            pageSize: this.pageSize,
+            pageNumber: this.currentPage
+        })
+            .then((result) => {
+                this.contactData = result.contacts;
+                this.totalRecords = result.totalRecords;
+                this.totalPages = result.totalPages;
+                this.isContactsVisible = true;
+                this.isLoadingContacts = false;
+            })
+            .catch((error) => {
+                this.errorMessage = 'Error loading contacts: ' + error.body.message;
+                this.isLoadingContacts = false;
+            });
+    }
+
+    /**
+     * @description Handle next button click for pagination
+     */
+    handleNextPage() {
+        if (this.currentPage < this.totalPages) {
+            this.currentPage++;
+            this.loadContactsForAccount();
+        }
+    }
+
+    /**
+     * @description Handle previous button click for pagination
+     */
+    handlePreviousPage() {
+        if (this.currentPage > 1) {
+            this.currentPage--;
+            this.loadContactsForAccount();
+        }
+    }
+
+    /**
+     * @description Check if next button should be disabled
+     */
+    get isNextDisabled() {
+        return this.currentPage >= this.totalPages;
+    }
+
+    /**
+     * @description Check if previous button should be disabled
+     */
+    get isPreviousDisabled() {
+        return this.currentPage <= 1;
+    }
+
+    /**
+     * @description Get pagination info text
+     */
+    get paginationInfo() {
+        if (this.totalRecords === 0) {
+            return 'No contacts found';
+        }
+        return `Page ${this.currentPage} of ${this.totalPages} (Total: ${this.totalRecords} records)`;
     }
 }
