@@ -1,0 +1,93 @@
+/* MSTAR Account Data Display Component Styles */
+
+.slds-box {
+    background-color: #ffffff;
+    border: 1px solid #e5e5e5;
+    border-radius: 4px;
+}
+
+.slds-illustration_small {
+    width: 100%;
+    padding: 40px 0;
+}
+
+.slds-text-color_brand {
+    color: #0070d2;
+    font-weight: 600;
+}
+
+/* Datatable Styling */
+lightning-datatable {
+    min-height: 300px;
+}
+
+/* Button Styling */
+.slds-button {
+    transition: all 0.2s ease-in-out;
+}
+
+.slds-button:hover:not(:disabled) {
+    background-color: #f3f3f3;
+    border-color: #d3d3d3;
+}
+
+.slds-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Pagination Container */
+.slds-grid_align-center {
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+}
+
+/* Loading Spinner */
+lightning-spinner {
+    display: flex;
+    justify-content: center;
+    padding: 40px 0;
+}
+
+/* Header Styling */
+.slds-text-heading_large {
+    color: #0070d2;
+}
+
+.slds-text-heading_medium {
+    color: #333333;
+}
+
+/* Form Input Styling */
+.slds-form-element__label {
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+lightning-input {
+    width: 100%;
+}
+
+/* Box Styling */
+.slds-box_small {
+    border-left: 4px solid #0070d2;
+    background-color: #f9fbff;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .slds-grid_align-center {
+        flex-direction: column;
+        width: 100%;
+    }
+    
+    .slds-button {
+        width: 100%;
+        margin: 5px 0 !important;
+    }
+    
+    lightning-datatable {
+        font-size: 12px;
+    }
+}
