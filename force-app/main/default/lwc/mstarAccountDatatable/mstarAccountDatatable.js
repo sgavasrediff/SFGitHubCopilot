@@ -1,5 +1,6 @@
 import { LightningElement, track } from 'lwc';
 import getAccounts from '@salesforce/apex/MSTAR_AccountHelper.getAccounts';
+import getAccountsWithPagination from '@salesforce/apex/MSTAR_AccountHelper.getAccountsWithPagination';
 import getRelatedContacts from '@salesforce/apex/MSTAR_AccountContactHelper.getRelatedContacts';
 
 /**
@@ -13,6 +14,10 @@ export default class MstarAccountDatatable extends LightningElement {
     @track searchTerm = '';
     @track isLoading = false;
     @track isLoadingContacts = false;
+    @track currentAccountPage = 1;
+    @track accountPageSize = 10;
+    @track totalAccountPages = 0;
+    @track totalAccountRecords = 0;
     @track columns = [
         {
             label: 'Account Name',
@@ -55,6 +60,7 @@ export default class MstarAccountDatatable extends LightningElement {
     
     @track selectedAccountId = null;
     @track selectedAccountName = '';
+    @track selectedAccountRows = [];
     @track isContactsVisible = false;
     @track currentPage = 1;
     @track pageSize = 10;
@@ -71,20 +77,26 @@ export default class MstarAccountDatatable extends LightningElement {
     }
 
     /**
-     * @description Fetches accounts from Apex helper class
+     * @description Fetches accounts from Apex helper class with pagination support
      * @param searchValue Optional search term to filter accounts
      */
     loadAccounts(searchValue = '') {
         this.isLoading = true;
         
-        // Call Apex method to fetch accounts
-        getAccounts({ searchTerm: searchValue, limitCount: 10 })
+        // Call Apex method to fetch accounts with pagination
+        getAccountsWithPagination({ 
+            searchTerm: searchValue, 
+            pageSize: this.accountPageSize,
+            pageNumber: this.currentAccountPage
+        })
             .then(result => {
                 // Map the result to format CreatedDate properly
-                this.accounts = result.map(account => ({
+                this.accounts = result.accounts.map(account => ({
                     ...account,
                     CreatedDate: new Date(account.CreatedDate).toLocaleDateString()
                 }));
+                this.totalAccountRecords = result.totalRecords;
+                this.totalAccountPages = result.totalPages;
                 this.isLoading = false;
             })
             .catch(error => {
@@ -102,6 +114,7 @@ export default class MstarAccountDatatable extends LightningElement {
      */
     handleSearchChange(event) {
         this.searchTerm = event.target.value;
+        this.currentAccountPage = 1; // Reset to first page on search
         // Load accounts when search term changes
         this.loadAccounts(this.searchTerm);
     }
@@ -123,11 +136,20 @@ export default class MstarAccountDatatable extends LightningElement {
         const selectedRows = event.detail.selectedRows;
         
         if (selectedRows.length > 0) {
+            // Only use the first selected row (max-row-selection="1" ensures only one)
             this.selectedAccountId = selectedRows[0].Id;
             this.selectedAccountName = selectedRows[0].Name;
+            this.selectedAccountRows = [selectedRows[0].Id]; // Update the selected rows for datatable binding
             this.currentPage = 1;
             this.errorMessage = '';
             this.loadContactsForAccount();
+        } else {
+            // Clear selection if no rows selected
+            this.selectedAccountId = null;
+            this.selectedAccountName = '';
+            this.selectedAccountRows = [];
+            this.isContactsVisible = false;
+            this.contactData = [];
         }
     }
 
@@ -190,12 +212,56 @@ export default class MstarAccountDatatable extends LightningElement {
     }
 
     /**
-     * @description Get pagination info text
+     * @description Get pagination info text for contacts
      */
     get paginationInfo() {
         if (this.totalRecords === 0) {
             return 'No contacts found';
         }
         return `Page ${this.currentPage} of ${this.totalPages} (Total: ${this.totalRecords} records)`;
+    }
+
+    /**
+     * @description Handle next button click for account pagination
+     */
+    handleNextAccountPage() {
+        if (this.currentAccountPage < this.totalAccountPages) {
+            this.currentAccountPage++;
+            this.loadAccounts(this.searchTerm);
+        }
+    }
+
+    /**
+     * @description Handle previous button click for account pagination
+     */
+    handlePreviousAccountPage() {
+        if (this.currentAccountPage > 1) {
+            this.currentAccountPage--;
+            this.loadAccounts(this.searchTerm);
+        }
+    }
+
+    /**
+     * @description Check if next button should be disabled for accounts
+     */
+    get isAccountNextDisabled() {
+        return this.currentAccountPage >= this.totalAccountPages;
+    }
+
+    /**
+     * @description Check if previous button should be disabled for accounts
+     */
+    get isAccountPreviousDisabled() {
+        return this.currentAccountPage <= 1;
+    }
+
+    /**
+     * @description Get pagination info text for accounts
+     */
+    get accountPaginationInfo() {
+        if (this.totalAccountRecords === 0) {
+            return 'No accounts found';
+        }
+        return `Page ${this.currentAccountPage} of ${this.totalAccountPages} (Total: ${this.totalAccountRecords} records)`;
     }
 }

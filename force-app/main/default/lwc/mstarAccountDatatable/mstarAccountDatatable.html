@@ -48,8 +48,31 @@
                             key-field="Id"
                             data={accounts}
                             columns={columns}
+                            max-row-selection="1"
+                            selected-rows={selectedAccountRows}
                             onrowselection={handleAccountRowSelection}>
                         </lightning-datatable>
+
+                        <!-- Pagination Controls for Accounts -->
+                        <div class="slds-m-top_medium slds-align_absolute-center">
+                            <div class="slds-m-bottom_small">
+                                <p class="slds-text-body_small">{accountPaginationInfo}</p>
+                            </div>
+                            <div class="slds-button-group" role="group">
+                                <button
+                                    class="slds-button slds-button_neutral"
+                                    onclick={handlePreviousAccountPage}
+                                    disabled={isAccountPreviousDisabled}>
+                                    Previous
+                                </button>
+                                <button
+                                    class="slds-button slds-button_neutral"
+                                    onclick={handleNextAccountPage}
+                                    disabled={isAccountNextDisabled}>
+                                    Next
+                                </button>
+                            </div>
+                        </div>
                     </template>
                     
                     <template if:false={accounts.length}>
